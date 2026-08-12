@@ -1,4 +1,4 @@
-//
+    //
 //  ContentView.swift
 //  GitHubClient
 //
@@ -9,13 +9,17 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        VStack(alignment: .trailing) {
+            HStack {
+                Image(systemName: "globe")
+                    .imageScale(.large)
+                    .foregroundStyle(.tint)
+                Text("Hello, world!")
+            }
+            Text("Good evening, world!")
+                .underline()
+                .fontWeight(.bold)
         }
-        .padding()
     }
 }
 
