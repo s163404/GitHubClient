@@ -37,6 +37,7 @@ struct RepoDetailView: View {
             Spacer()    // HStackを左詰めにする余白
         }
         .padding(8)
+        .navigationTitle("Repository Detail")
     }
 }
 
