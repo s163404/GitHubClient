@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct Repo: Identifiable, Hashable {
+struct Repo: Identifiable, Hashable, Decodable {
     var id: Int
     var name: String
     var owner: User
