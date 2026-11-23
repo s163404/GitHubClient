@@ -12,6 +12,22 @@ struct RepoListView: View {
     
     var body: some View {
         NavigationStack {
+            if store.error != nil {
+                VStack {
+                    Text("Failed to load repositories")
+                    Button(
+                        action: {
+                            Task {
+                                // リトライボタンをタップしたときに再度リクエストを投げる
+                                await store.loadRepos()
+                            }
+                        }, label: {
+                            Text("Retry")
+                        }
+                    )
+                    .padding()
+                }
+            } else {
             if store.repos.isEmpty {
                 ProgressView("loading...")
             } else {
@@ -25,6 +41,7 @@ struct RepoListView: View {
                     RepoDetailView(repo: repo)
                 }
             }
+            }
         }
         .task {
             await store.loadRepos()
@@ -36,6 +53,7 @@ struct RepoListView: View {
 @MainActor
 class ReposStore {
     private(set) var repos = [Repo]()
+    private(set) var error: Error? = nil
     
     func loadRepos() async {
         let url = URL(string: "https://api.github.com/orgs/mixigroup/repos")!
@@ -48,11 +66,21 @@ class ReposStore {
         // GitHub API のリクエスト数制限(60回/h)回避のためのキャッシュ設定 ※研修内容とは直接関係ありません
         urlRequest.cachePolicy = .returnCacheDataElseLoad
 
-        let (data, _) = try! await URLSession.shared.data(for: urlRequest)
-        // デコード処理
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        repos = try! decoder.decode([Repo].self, from: data)
+        do {
+            let (data, response) = try await URLSession.shared.data(for: urlRequest)
+            
+            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                throw URLError(.badServerResponse)
+            }
+            
+            // デコード処理
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            repos = try decoder.decode([Repo].self, from: data)
+        } catch {
+            self.error = error
+            print("error: \(error)")
+        }
     }
 }
 
