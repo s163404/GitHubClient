@@ -28,19 +28,19 @@ struct RepoListView: View {
                     .padding()
                 }
             } else {
-            if store.repos.isEmpty {
-                ProgressView("loading...")
-            } else {
-                List(store.repos) { repo in
-                    NavigationLink(value: repo) {
-                        RepoRaw(repo: repo)
+                if store.repos.isEmpty {
+                    ProgressView("loading...")
+                } else {
+                    List(store.repos) { repo in
+                        NavigationLink(value: repo) {
+                            RepoRaw(repo: repo)
+                        }
+                    }
+                    .navigationTitle("Repositories")
+                    .navigationDestination(for: Repo.self) { repo in
+                        RepoDetailView(repo: repo)
                     }
                 }
-                .navigationTitle("Repositories")
-                .navigationDestination(for: Repo.self) { repo in
-                    RepoDetailView(repo: repo)
-                }
-            }
             }
         }
         .task {
