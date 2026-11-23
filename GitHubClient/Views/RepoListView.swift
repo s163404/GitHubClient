@@ -12,6 +12,7 @@ struct RepoListView: View {
     
     var body: some View {
         NavigationStack {
+            Group {
             if store.error != nil {
                 VStack {
                     Text("Failed to load repositories")
@@ -28,7 +29,7 @@ struct RepoListView: View {
                     .padding()
                 }
             } else {
-                if store.repos.isEmpty {
+                if store.isLoading {
                     ProgressView("loading...")
                 } else {
                     List(store.repos) { repo in
@@ -36,11 +37,12 @@ struct RepoListView: View {
                             RepoRaw(repo: repo)
                         }
                     }
-                    .navigationTitle("Repositories")
-                    .navigationDestination(for: Repo.self) { repo in
-                        RepoDetailView(repo: repo)
-                    }
                 }
+            }
+            }
+            .navigationTitle("Repositories")
+            .navigationDestination(for: Repo.self) { repo in
+                RepoDetailView(repo: repo)
             }
         }
         .task {
@@ -54,8 +56,11 @@ struct RepoListView: View {
 class ReposStore {
     private(set) var repos = [Repo]()
     private(set) var error: Error? = nil
+    private(set) var isLoading: Bool = false
     
     func loadRepos() async {
+        isLoading = true
+        
         let url = URL(string: "https://api.github.com/orgs/mixigroup/repos")!
 
         var urlRequest = URLRequest(url: url)
@@ -77,9 +82,11 @@ class ReposStore {
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
             repos = try decoder.decode([Repo].self, from: data)
+            isLoading = false
         } catch {
             self.error = error
             print("error: \(error)")
+            isLoading = false
         }
     }
 }
